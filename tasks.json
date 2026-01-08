@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Buy groceries",
+      "description": "Need to buy milk and bread",
+      "status": "pending",
+      "created_at": "2025-12-27T22:45:24.853176"
+    },
+    {
+      "id": 2,
+      "title": "Complete project",
+      "description": "Finish the todo app implementation",
+      "status": "pending",
+      "created_at": "2025-12-27T22:45:24.853176"
+    },
+    {
+      "id": 3,
+      "title": "samay",
+      "description": "",
+      "status": "pending",
+      "created_at": "2025-12-27T22:47:03.557037"
+    }
+  ],
+  "next_id": 4
+}

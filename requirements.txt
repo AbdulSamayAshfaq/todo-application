@@ -1,0 +1,2 @@
+# Console Todo Application - Phase I
+# No external dependencies required - uses only Python standard library
