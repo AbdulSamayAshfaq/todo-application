@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { taskApi } from '../../lib/api'
+import { useAuth } from '../../context/AuthContext'
 
 interface Task {
   id: number
@@ -30,12 +31,18 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated }) => {
   const [dueDate, setDueDate] = useState('')
   const [category, setCategory] = useState('')
   const [error, setError] = useState('')
+  const { user } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!title.trim()) {
       setError('Title is required')
+      return
+    }
+
+    if (!user) {
+      setError('You must be logged in to create a task')
       return
     }
 
@@ -49,6 +56,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated }) => {
         category: category.trim() || null,
         is_recurring: false,
         recurrence_pattern: null,
+        owner_id: user.id, // Add the owner_id from the authenticated user
       })
       onTaskCreated(createdTask)
       // Reset form
