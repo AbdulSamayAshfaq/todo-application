@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TaskList } from '../../components/TaskList';
-import { TaskForm } from '../../components/TaskForm';
+import { TaskList } from '../../../app/components/TaskList';
+import { TaskForm } from '../../../app/components/TaskForm';
 import { useAuth } from '../../../context/AuthContext';
 import { taskApi } from '../../../lib/api';
 
