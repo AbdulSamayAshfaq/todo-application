@@ -26,16 +26,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except jwt.JWTError:
         raise credentials_exception
 
-    if username == "admin":
-        # Return mock admin user
-        return models.User(
-            id=1,
-            username="admin",
-            email="admin@example.com",
-            hashed_password="",
-            is_active=True
-        )
-
     user = db.query(models.User).filter(models.User.username == token_data.username).first()
     if user is None:
         raise credentials_exception

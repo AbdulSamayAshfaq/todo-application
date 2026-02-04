@@ -10,9 +10,23 @@ interface Task {
   priority: 'low' | 'medium' | 'high'
   due_date: string | null
   category: string | null
+  is_recurring: boolean
+  recurrence_pattern: string | null
   created_at: string
   updated_at: string | null
   completed_at: string | null
+  owner_id: number
+}
+
+interface Note {
+  id: number
+  title: string
+  content: string | null
+  category: string | null
+  is_pinned: boolean
+  created_at: string
+  updated_at: string | null
+  owner_id: number
 }
 
 interface User {
@@ -39,11 +53,30 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      // Handle different error response types
+      let errorData;
+      const contentType = response.headers.get('content-type')
+
+      if (contentType && contentType.includes('application/json')) {
+        errorData = await response.json().catch(() => ({}))
+      } else {
+        errorData = { detail: await response.text() || `API request failed: ${response.status}` }
+      }
+
       throw new Error(errorData.detail || `API request failed: ${response.status}`)
     }
 
-    return await response.json()
+    // Handle responses that might not have JSON content (like DELETE requests)
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json()
+    } else {
+      // For responses without JSON content (like DELETE), return success
+      if (response.status === 204) {
+        return undefined // No content for DELETE requests
+      }
+      return {} // Return empty object for other non-JSON responses
+    }
   } catch (error) {
     console.error('API request error:', error)
     throw error
@@ -55,6 +88,11 @@ export const taskApi = {
   // Get all tasks
   getTasks: (): Promise<Task[]> => {
     return apiRequest('/tasks')
+  },
+
+  // Get a specific task by ID
+  getTaskById: (id: number): Promise<Task> => {
+    return apiRequest(`/tasks/${id}`)
   },
 
   // Create a new task
@@ -109,5 +147,41 @@ export const authApi = {
   // Get current user
   getCurrentUser: (): Promise<User> => {
     return apiRequest('/auth/me')
+  },
+}
+
+// Notes API functions
+export const noteApi = {
+  // Get all notes
+  getNotes: (): Promise<Note[]> => {
+    return apiRequest('/notes')
+  },
+
+  // Get a specific note by ID
+  getNoteById: (id: number): Promise<Note> => {
+    return apiRequest(`/notes/${id}`)
+  },
+
+  // Create a new note
+  createNote: (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'>): Promise<Note> => {
+    return apiRequest('/notes', {
+      method: 'POST',
+      body: JSON.stringify(noteData),
+    })
+  },
+
+  // Update a note
+  updateNote: (id: number, noteData: Partial<Note>): Promise<Note> => {
+    return apiRequest(`/notes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(noteData),
+    })
+  },
+
+  // Delete a note
+  deleteNote: (id: number): Promise<void> => {
+    return apiRequest(`/notes/${id}`, {
+      method: 'DELETE',
+    })
   },
 }

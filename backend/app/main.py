@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from . import auth, tasks, models, utils
+from . import auth, tasks, notes, models, utils
 from .database import engine, Base, SessionLocal
 
 # Create database tables
@@ -15,7 +15,8 @@ try:
         default_user = models.User(
             username="admin",
             email="admin@example.com",
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
+            is_active=True
         )
         db.add(default_user)
         db.commit()
@@ -43,6 +44,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(notes.router, prefix="/api/notes", tags=["notes"])
 
 @app.get("/")
 def read_root():

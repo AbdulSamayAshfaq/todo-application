@@ -83,3 +83,31 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+
+class NoteBase(BaseModel):
+    title: str
+    content: Optional[str] = None
+    category: Optional[str] = None
+    is_pinned: bool = False
+
+
+class NoteCreate(NoteBase):
+    pass
+
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    is_pinned: Optional[bool] = None
+
+
+class Note(NoteBase):
+    id: int
+    owner_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
