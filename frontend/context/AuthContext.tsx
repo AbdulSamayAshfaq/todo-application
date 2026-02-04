@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { authApi } from '../lib/api'
 
 interface AuthContextType {
@@ -15,10 +15,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Pages that don't require authentication
+const PUBLIC_PAGES = ['/login', '/signup', '/landing']
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     checkAuth()
@@ -32,15 +36,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData)
       } else {
         setUser(null)
-        // If no token, redirect to landing page
-        router.push('/landing')
+        // Only redirect to landing if not on a public page
+        if (!PUBLIC_PAGES.includes(pathname)) {
+          router.push('/landing')
+        }
       }
     } catch (error) {
       // User is not authenticated or token is invalid
       localStorage.removeItem('access_token')
       setUser(null)
-      // Redirect to landing page when token is invalid
-      router.push('/landing')
+      // Only redirect to landing if not on a public page
+      if (!PUBLIC_PAGES.includes(pathname)) {
+        router.push('/landing')
+      }
     } finally {
       setLoading(false)
     }

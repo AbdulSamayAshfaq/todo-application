@@ -11,9 +11,12 @@ interface Task {
   priority: 'low' | 'medium' | 'high'
   due_date: string | null
   category: string | null
+  is_recurring: boolean
+  recurrence_pattern: string | null
   created_at: string
   updated_at: string | null
   completed_at: string | null
+  owner_id: number
 }
 
 interface TaskListProps {

@@ -11,9 +11,12 @@ interface Task {
   priority: 'low' | 'medium' | 'high'
   due_date: string | null
   category: string | null
+  is_recurring: boolean
+  recurrence_pattern: string | null
   created_at: string
   updated_at: string | null
   completed_at: string | null
+  owner_id: number
 }
 
 interface TaskFormProps {
@@ -44,6 +47,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated }) => {
         priority,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
         category: category.trim() || null,
+        is_recurring: false,
+        recurrence_pattern: null,
       })
       onTaskCreated(createdTask)
       // Reset form

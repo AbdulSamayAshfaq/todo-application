@@ -16,8 +16,9 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    # Relationship to tasks
+    # Relationships to tasks and notes
     tasks = relationship("Task", back_populates="owner")
+    notes = relationship("Note", back_populates="owner")
 
 
 class Task(Base):
@@ -39,3 +40,19 @@ class Task(Base):
     # Foreign key to user
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="tasks")
+
+
+class Note(Base):
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=True)
+    category = Column(String, nullable=True)
+    is_pinned = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    # Foreign key to user
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="notes")
