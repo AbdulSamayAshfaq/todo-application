@@ -3,7 +3,10 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '../context/AuthContext'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap', // Use swap to prevent invisible text while loading
+})
 
 export const metadata: Metadata = {
   title: 'AI-Powered Todo App',
