@@ -14,7 +14,12 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Database URL - using environment variable or default to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./todo_app.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_sqAom1cgfG5N@ep-dry-dream-adssn82d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+
+# Validate that DATABASE_URL is not None or empty
+if not DATABASE_URL:
+    DATABASE_URL = "postgresql://neondb_owner:npg_sqAom1cgfG5N@ep-dry-dream-adssn82d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    logger.warning("DATABASE_URL is not set, defaulting to PostgreSQL Neon")
 
 logger.info(f"Database URL configured: {'PostgreSQL/Neon' if 'postgresql' in DATABASE_URL.lower() or 'postgres' in DATABASE_URL.lower() else 'SQLite'}")
 
