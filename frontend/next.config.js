@@ -6,15 +6,11 @@ const nextConfig = {
   reactStrictMode: true,
   // Ensure proper handling of API calls
   async rewrites() {
+    // Generic rewrite to proxy all /api/* requests to the backend
     return [
       {
-        source: '/api/backend/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
-      },
-      // Additional rewrite to handle direct API calls if needed
-      {
-        source: '/api/auth/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || 'http://localhost:8000'}/auth/:path*`,
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
       },
     ]
   },

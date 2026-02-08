@@ -1,6 +1,6 @@
 // API service for communicating with the backend
-// Use the proxy path for Next.js rewrites: /api/backend/:path* -> actual backend
-const API_BASE_URL = ''
+// Use relative path to go through Next.js proxy
+const API_BASE_URL = '/api'
 
 // Types
 interface Task {
@@ -48,7 +48,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   }
 
   try {
-    const response = await fetch(`/api/backend${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
     })
@@ -115,7 +115,7 @@ export const taskApi = {
     const token = localStorage.getItem('access_token')
     if (!token) throw new Error('Please login first')
     
-    const response = await fetch('/api/backend/tasks', {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export const taskApi = {
     const token = localStorage.getItem('access_token')
     if (!token) throw new Error('Please login first')
     
-    const response = await fetch(`/api/backend/tasks/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export const taskApi = {
     const token = localStorage.getItem('access_token')
     if (!token) throw new Error('Please login first')
     
-    const response = await fetch(`/api/backend/tasks/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -182,7 +182,6 @@ export const authApi = {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      credentials: 'include',
     })
   },
 
@@ -191,13 +190,12 @@ export const authApi = {
     return apiRequest('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
-      credentials: 'include',
     })
   },
 
   // Get current user
   getCurrentUser: (): Promise<User> => {
-    return apiRequest('/auth/me', { credentials: 'include' }) // Include cookies for auth
+    return apiRequest('/auth/me')
   },
 }
 
@@ -205,12 +203,12 @@ export const authApi = {
 export const noteApi = {
   // Get all notes
   getNotes: (): Promise<Note[]> => {
-    return apiRequest('/notes', { credentials: 'include' })
+    return apiRequest('/notes')
   },
 
   // Get a specific note by ID
   getNoteById: (id: number): Promise<Note> => {
-    return apiRequest(`/notes/${id}`, { credentials: 'include' })
+    return apiRequest(`/notes/${id}`)
   },
 
   // Create a new note
@@ -218,7 +216,6 @@ export const noteApi = {
     return apiRequest('/notes', {
       method: 'POST',
       body: JSON.stringify(noteData),
-      credentials: 'include'
     })
   },
 
@@ -227,7 +224,6 @@ export const noteApi = {
     return apiRequest(`/notes/${id}`, {
       method: 'PUT',
       body: JSON.stringify(noteData),
-      credentials: 'include'
     })
   },
 
@@ -235,7 +231,6 @@ export const noteApi = {
   deleteNote: (id: number): Promise<void> => {
     return apiRequest(`/notes/${id}`, {
       method: 'DELETE',
-      credentials: 'include'
     })
   },
 }
