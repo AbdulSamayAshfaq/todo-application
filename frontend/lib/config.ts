@@ -1,0 +1,2 @@
+export const CHATKIT_API_URL = process.env.NEXT_PUBLIC_CHATKIT_API_URL || process.env.NEXT_PUBLIC_AI_AGENT_URL || 'http://localhost:8001';
+export const CHATKIT_API_DOMAIN_KEY = process.env.NEXT_PUBLIC_CHATKIT_API_DOMAIN_KEY || 'todo-app';

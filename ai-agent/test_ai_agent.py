@@ -8,7 +8,7 @@ def test_ai_agent():
     print("Testing AI Agent Service...")
 
     # Test endpoint
-    url = "http://localhost:8001/chat"
+    url = os.getenv('CHATKIT_API_URL', 'http://localhost:8001/chat')
 
     # Sample JWT token (this would need to be a real token in practice)
     # For testing purposes, we'll use a mock token

@@ -1,0 +1,588 @@
+# Enhanced MCP Server Tool Contracts for AI Chatbot Layer
+
+# Tool: create_task (Enhanced)
+# Description: Creates a new task in the system with enhanced capabilities
+create_task:
+  parameters:
+    title:
+      type: string
+      required: true
+      description: "Task title/description"
+    description:
+      type: string
+      required: false
+      description: "Detailed task description"
+    due_date:
+      type: string
+      required: false
+      format: "ISO 8601 date format"
+      description: "Due date in ISO 8601 format"
+    priority:
+      type: string
+      required: false
+      enum: ["low", "medium", "high"]
+      default: "medium"
+      description: "Priority level"
+    category:
+      type: string
+      required: false
+      description: "Category tag"
+    dependencies:
+      type: array
+      required: false
+      items:
+        type: string
+      description: "IDs of tasks this task depends on"
+    assignee:
+      type: string
+      required: false
+      description: "User ID to assign the task to"
+    tags:
+      type: array
+      required: false
+      items:
+        type: string
+      description: "Tags for the task"
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      task:
+        type: object
+        properties:
+          id:
+            type: integer
+            required: true
+          title:
+            type: string
+            required: true
+          description:
+            type: string
+            required: false
+          due_date:
+            type: string
+            format: "ISO 8601 date format"
+            required: false
+          priority:
+            type: string
+            enum: ["low", "medium", "high"]
+            required: false
+          category:
+            type: string
+            required: false
+          dependencies:
+            type: array
+            items:
+              type: integer
+            required: false
+          assignee:
+            type: string
+            required: false
+          tags:
+            type: array
+            items:
+              type: string
+            required: false
+          status:
+            type: string
+            enum: ["pending", "completed", "in-progress"]
+            required: true
+          created_at:
+            type: string
+            format: "ISO 8601 datetime"
+            required: true
+          updated_at:
+            type: string
+            format: "ISO 8601 datetime"
+            required: false
+        required: ["id", "title", "status", "created_at"]
+
+# Tool: update_task (Enhanced)
+# Description: Updates an existing task in the system with enhanced capabilities
+update_task:
+  parameters:
+    task_id:
+      type: string
+      required: true
+      description: "Unique task identifier"
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    updates:
+      type: object
+      required: true
+      properties:
+        title:
+          type: string
+          required: false
+        description:
+          type: string
+          required: false
+        due_date:
+          type: string
+          format: "ISO 8601 date format"
+          required: false
+        priority:
+          type: string
+          enum: ["low", "medium", "high"]
+          required: false
+        status:
+          type: string
+          enum: ["pending", "completed", "in-progress"]
+          required: false
+        category:
+          type: string
+          required: false
+        dependencies:
+          type: array
+          items:
+            type: string
+          required: false
+        assignee:
+          type: string
+          required: false
+        tags:
+          type: array
+          items:
+            type: string
+          required: false
+        remove_dependencies:
+          type: array
+          items:
+            type: string
+          required: false
+          description: "Dependencies to remove from the task"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      task:
+        type: object
+        properties:
+          id:
+            type: integer
+            required: true
+          title:
+            type: string
+            required: true
+          description:
+            type: string
+            required: false
+          due_date:
+            type: string
+            format: "ISO 8601 date format"
+            required: false
+          priority:
+            type: string
+            enum: ["low", "medium", "high"]
+            required: false
+          category:
+            type: string
+            required: false
+          dependencies:
+            type: array
+            items:
+              type: integer
+            required: false
+          assignee:
+            type: string
+            required: false
+          tags:
+            type: array
+            items:
+              type: string
+            required: false
+          status:
+            type: string
+            enum: ["pending", "completed", "in-progress"]
+            required: true
+          created_at:
+            type: string
+            format: "ISO 8601 datetime"
+            required: true
+          updated_at:
+            type: string
+            format: "ISO 8601 datetime"
+            required: true
+        required: ["id", "title", "status", "created_at", "updated_at"]
+
+# Tool: query_tasks (Enhanced)
+# Description: Retrieves tasks based on specified filters with advanced options
+query_tasks:
+  parameters:
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    filters:
+      type: object
+      required: false
+      properties:
+        due_date_range:
+          type: object
+          properties:
+            start:
+              type: string
+              format: "ISO 8601 date format"
+            end:
+              type: string
+              format: "ISO 8601 date format"
+        priority:
+          type: array
+          items:
+            type: string
+            enum: ["low", "medium", "high"]
+        status:
+          type: array
+          items:
+            type: string
+            enum: ["pending", "completed", "in-progress"]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        assignee:
+          type: string
+        search_query:
+          type: string
+          description: "Full-text search query"
+        dependencies:
+          type: array
+          items:
+            type: string
+          description: "Tasks that depend on these task IDs"
+    sort_by:
+      type: string
+      enum: ["due_date", "priority", "created_at", "title"]
+      default: "due_date"
+      description: "Field to sort results by"
+    sort_order:
+      type: string
+      enum: ["asc", "desc"]
+      default: "asc"
+      description: "Sort order"
+    limit:
+      type: integer
+      required: false
+      description: "Maximum number of results to return"
+    offset:
+      type: integer
+      required: false
+      default: 0
+      description: "Offset for pagination"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      tasks:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              required: true
+            title:
+              type: string
+              required: true
+            description:
+              type: string
+              required: false
+            due_date:
+              type: string
+              format: "ISO 8601 date format"
+              required: false
+            priority:
+              type: string
+              enum: ["low", "medium", "high"]
+              required: false
+            category:
+              type: string
+              required: false
+            dependencies:
+              type: array
+              items:
+                type: integer
+              required: false
+            assignee:
+              type: string
+              required: false
+            tags:
+              type: array
+              items:
+                type: string
+              required: false
+            status:
+              type: string
+              enum: ["pending", "completed", "in-progress"]
+              required: true
+            created_at:
+              type: string
+              format: "ISO 8601 datetime"
+              required: true
+            updated_at:
+              type: string
+              format: "ISO 8601 datetime"
+              required: false
+          required: ["id", "title", "status", "created_at"]
+      total_count:
+        type: integer
+        required: true
+        description: "Total number of tasks matching the filters"
+
+# Tool: delete_task (Enhanced)
+# Description: Deletes a task from the system with cascade options
+delete_task:
+  parameters:
+    task_id:
+      type: string
+      required: true
+      description: "Unique task identifier"
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    cascade_delete:
+      type: boolean
+      required: false
+      default: false
+      description: "Whether to delete dependent tasks as well"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      message:
+        type: string
+        required: false
+      affected_tasks:
+        type: array
+        items:
+          type: integer
+        description: "IDs of tasks affected by the delete operation"
+
+# Tool: search_tasks (Enhanced)
+# Description: Searches tasks by keywords in title/description with advanced options
+search_tasks:
+  parameters:
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    query:
+      type: string
+      required: true
+      description: "Text to search for in task titles/descriptions/tags"
+    search_fields:
+      type: array
+      items:
+        type: string
+        enum: ["title", "description", "tags", "category"]
+      default: ["title", "description"]
+      description: "Fields to search in"
+    filters:
+      type: object
+      required: false
+      properties:
+        priority:
+          type: array
+          items:
+            type: string
+            enum: ["low", "medium", "high"]
+        status:
+          type: array
+          items:
+            type: string
+            enum: ["pending", "completed", "in-progress"]
+        category:
+          type: string
+    limit:
+      type: integer
+      required: false
+      description: "Maximum number of results to return"
+    fuzzy_match:
+      type: boolean
+      required: false
+      default: true
+      description: "Whether to use fuzzy matching"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      tasks:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              required: true
+            title:
+              type: string
+              required: true
+            description:
+              type: string
+              required: false
+            due_date:
+              type: string
+              format: "ISO 8601 date format"
+              required: false
+            priority:
+              type: string
+              enum: ["low", "medium", "high"]
+              required: false
+            category:
+              type: string
+              required: false
+            dependencies:
+              type: array
+              items:
+                type: integer
+              required: false
+            assignee:
+              type: string
+              required: false
+            tags:
+              type: array
+              items:
+                type: string
+              required: false
+            status:
+              type: string
+              enum: ["pending", "completed", "in-progress"]
+              required: true
+            search_score:
+              type: number
+              required: false
+              description: "Relevance score for the search result"
+            created_at:
+              type: string
+              format: "ISO 8601 datetime"
+              required: true
+            updated_at:
+              type: string
+              format: "ISO 8601 datetime"
+              required: false
+          required: ["id", "title", "status", "created_at"]
+
+# Tool: batch_update_tasks
+# Description: Updates multiple tasks in a single operation
+batch_update_tasks:
+  parameters:
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    task_ids:
+      type: array
+      items:
+        type: string
+      required: true
+      description: "Array of task IDs to update"
+    updates:
+      type: object
+      required: true
+      properties:
+        priority:
+          type: string
+          enum: ["low", "medium", "high"]
+          required: false
+        status:
+          type: string
+          enum: ["pending", "completed", "in-progress"]
+          required: false
+        category:
+          type: string
+          required: false
+        tags_to_add:
+          type: array
+          items:
+            type: string
+          required: false
+        tags_to_remove:
+          type: array
+          items:
+            type: string
+          required: false
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      updated_count:
+        type: integer
+        required: true
+        description: "Number of tasks successfully updated"
+      failed_updates:
+        type: array
+        items:
+          type: object
+          properties:
+            task_id:
+              type: string
+              required: true
+            error:
+              type: string
+              required: true
+          required: ["task_id", "error"]
+        description: "Details of any updates that failed"
+
+# Tool: create_task_dependency
+# Description: Creates a dependency relationship between tasks
+create_task_dependency:
+  parameters:
+    user_id:
+      type: string
+      required: true
+      description: "Authenticated user identifier"
+    dependent_task_id:
+      type: string
+      required: true
+      description: "ID of the task that depends on another"
+    dependency_task_id:
+      type: string
+      required: true
+      description: "ID of the task that must be completed first"
+  response:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      message:
+        type: string
+        required: false
+      dependency_created:
+        type: object
+        properties:
+          id:
+            type: integer
+            required: true
+          dependent_task_id:
+            type: integer
+            required: true
+          dependency_task_id:
+            type: integer
+            required: true
+          created_at:
+            type: string
+            format: "ISO 8601 datetime"
+            required: true
+        required: ["id", "dependent_task_id", "dependency_task_id", "created_at"]

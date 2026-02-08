@@ -208,3 +208,12 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.11, JavaScript/TypeScript for frontend components + OpenAI ChatKit, OpenAI Agents SDK, FastAPI for MCP server, existing TODO application stack (002-ai-chatbot-layer)
+- PostgreSQL database (existing TODO application), conversation storage in database (002-ai-chatbot-layer)
+- Python 3.11, TypeScript/JavaScript for frontend components + OpenAI ChatKit, OpenAI Agents SDK, FastAPI for MCP server, existing TODO application stack (003-ai-chatbot-update)
+- PostgreSQL database (existing TODO application), enhanced conversation storage in database (003-ai-chatbot-update)
+
+## Recent Changes
+- 002-ai-chatbot-layer: Added Python 3.11, JavaScript/TypeScript for frontend components + OpenAI ChatKit, OpenAI Agents SDK, FastAPI for MCP server, existing TODO application stack

@@ -1,5 +1,5 @@
 // API service for communicating with the backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
 // Types
 interface Task {
@@ -86,36 +86,84 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 // Task API functions
 export const taskApi = {
   // Get all tasks
-  getTasks: (): Promise<Task[]> => {
-    return apiRequest('/tasks')
+  getTasks: async (): Promise<Task[]> => {
+    const token = localStorage.getItem('access_token')
+    if (!token) throw new Error('Please login first')
+    return apiRequest('/tasks', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
   },
 
   // Get a specific task by ID
-  getTaskById: (id: number): Promise<Task> => {
-    return apiRequest(`/tasks/${id}`)
+  getTaskById: async (id: number): Promise<Task> => {
+    const token = localStorage.getItem('access_token')
+    if (!token) throw new Error('Please login first')
+    return apiRequest(`/tasks/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
   },
 
   // Create a new task
-  createTask: (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'completed_at'>): Promise<Task> => {
-    return apiRequest('/tasks', {
+  createTask: async (taskData: {
+    title: string
+    description?: string
+    priority?: string
+    due_date?: string
+    category?: string
+  }): Promise<Task> => {
+    const token = localStorage.getItem('access_token')
+    if (!token) throw new Error('Please login first')
+    
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: 'POST',
-      body: JSON.stringify(taskData),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        ...taskData,
+        status: 'pending',
+        is_recurring: false,
+        recurrence_pattern: null
+      })
     })
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || 'Failed to create task')
+    }
+    return response.json()
   },
 
   // Update a task
-  updateTask: (id: number, taskData: Partial<Task>): Promise<Task> => {
-    return apiRequest(`/tasks/${id}`, {
+  updateTask: async (id: number, taskData: Partial<Task>): Promise<Task> => {
+    const token = localStorage.getItem('access_token')
+    if (!token) throw new Error('Please login first')
+    
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(taskData),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(taskData)
     })
+    
+    if (!response.ok) throw new Error('Failed to update task')
+    return response.json()
   },
 
   // Delete a task
-  deleteTask: (id: number): Promise<void> => {
-    return apiRequest(`/tasks/${id}`, {
+  deleteTask: async (id: number): Promise<void> => {
+    const token = localStorage.getItem('access_token')
+    if (!token) throw new Error('Please login first')
+    
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
     })
+    
+    if (!response.ok) throw new Error('Failed to delete task')
   },
 }
 
@@ -183,5 +231,102 @@ export const noteApi = {
     return apiRequest(`/notes/${id}`, {
       method: 'DELETE',
     })
+  },
+}
+
+// AI Agent API functions (for local ChatKit AI agent)
+const AI_AGENT_BASE_URL = process.env.NEXT_PUBLIC_AI_AGENT_URL || process.env.CHATKIT_API_URL || 'http://localhost:8001'
+
+export interface ChatKitEvent {
+  type: 'user_message' | 'action_invoked'
+  message?: {
+    content: string
+  }
+  action?: {
+    name: string
+  }
+  auth_token?: string
+}
+
+export interface ChatKitResponse {
+  type: string
+  content: string
+  done: boolean
+}
+
+export const aiAgentApi = {
+  // Send a user message to the AI agent
+  sendMessage: async (message: string): Promise<ChatKitResponse> => {
+    const token = localStorage.getItem('access_token')
+    
+    const event: ChatKitEvent = {
+      type: 'user_message',
+      message: {
+        content: message,
+      },
+      auth_token: token || '',
+    }
+
+    try {
+      const response = await fetch(`${AI_AGENT_BASE_URL}/chatkit/api`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI Agent request failed: ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('AI Agent API error:', error)
+      throw error
+    }
+  },
+
+  // Invoke an action on the AI agent
+  invokeAction: async (actionName: string): Promise<ChatKitResponse> => {
+    const event: ChatKitEvent = {
+      type: 'action_invoked',
+      action: {
+        name: actionName,
+      },
+    }
+
+    try {
+      const response = await fetch(`${AI_AGENT_BASE_URL}/chatkit/api`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI Agent request failed: ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('AI Agent API error:', error)
+      throw error
+    }
+  },
+
+  // Health check for AI agent
+  healthCheck: async (): Promise<{ status: string }> => {
+    try {
+      const response = await fetch(`${AI_AGENT_BASE_URL}/health`)
+      if (!response.ok) {
+        throw new Error(`Health check failed: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('AI Agent health check error:', error)
+      throw error
+    }
   },
 }

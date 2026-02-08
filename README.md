@@ -66,7 +66,7 @@ cd app
 uvicorn main:app --reload
 ```
 
-The backend will run on `http://localhost:8000`
+The backend will run on `http://localhost:8000` (configurable via BACKEND_URL environment variable)
 
 ### Phase I Console Application
 
@@ -124,7 +124,7 @@ The backend provides the following API endpoints:
 For the frontend, create a `.env.local` file:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=${BACKEND_URL:-http://localhost:8000}/api
 ```
 
 For the backend, you can set environment variables for database configuration and security.
