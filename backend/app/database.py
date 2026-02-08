@@ -13,19 +13,25 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-# Database URL - using environment variable or default to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_sqAom1cgfG5N@ep-dry-dream-adssn82d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+# Database URL - default to SQLite for Hugging Face Spaces
+# Use SQLite as default, PostgreSQL only if explicitly set
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# Validate that DATABASE_URL is not None or empty
-if not DATABASE_URL:
-    DATABASE_URL = "postgresql://neondb_owner:npg_sqAom1cgfG5N@ep-dry-dream-adssn82d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-    logger.warning("DATABASE_URL is not set, defaulting to PostgreSQL Neon")
+# If DATABASE_URL is empty or not set, use SQLite
+if not DATABASE_URL or DATABASE_URL.strip() == "":
+    DATABASE_URL = "sqlite:///./todo_app.db"
+    logger.info("Using SQLite database (local file)")
+else:
+    logger.info(f"Using custom database URL: {DATABASE_URL[:50]}...")
 
-logger.info(f"Database URL configured: {'PostgreSQL/Neon' if 'postgresql' in DATABASE_URL.lower() or 'postgres' in DATABASE_URL.lower() else 'SQLite'}")
+# Check if using PostgreSQL
+is_postgres = "postgresql" in DATABASE_URL.lower() or "postgres" in DATABASE_URL.lower()
 
-# Create engine with proper Neon PostgreSQL configuration
-if "postgresql" in DATABASE_URL.lower() or "postgres" in DATABASE_URL.lower():
-    logger.info("Configuring PostgreSQL engine for Neon")
+logger.info(f"Database URL configured: {'PostgreSQL' if is_postgres else 'SQLite'}")
+
+# Create engine
+if is_postgres:
+    logger.info("Configuring PostgreSQL engine")
     engine = create_engine(
         DATABASE_URL,
         pool_size=5,
@@ -37,7 +43,7 @@ if "postgresql" in DATABASE_URL.lower() or "postgres" in DATABASE_URL.lower():
             "connect_timeout": 10
         }
     )
-    logger.info("Neon PostgreSQL engine created with pool_pre_ping=True and SSL")
+    logger.info("PostgreSQL engine created with pool_pre_ping=True and SSL")
 else:
     logger.info("Configuring SQLite engine")
     engine = create_engine(

@@ -12,18 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install (with quiet mode for faster install)
+# Copy requirements and install
 COPY backend/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt 2>&1 | grep -v "Requirement already satisfied" || true
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Copy application code
 COPY backend/ /app/backend/
-
-# Work from app directory (parent of backend)
-WORKDIR /app
+COPY huggingface_space/app.py /app/app.py
 
 # Expose port
 EXPOSE 8000
 
-# Run the application with reduced log noise
-CMD ["python", "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
+# Run using the app.py script
+CMD ["python", "app.py"]

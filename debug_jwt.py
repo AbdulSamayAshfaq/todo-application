@@ -13,7 +13,7 @@ def debug_jwt():
     # Get a fresh token from backend
     print("\n1. Getting token from backend...")
     auth_response = requests.post(
-        "http://localhost:8000/api/auth/token",
+        f"{os.getenv('TODO_BACKEND_URL', os.getenv('BACKEND_URL', 'http://localhost:8000'))}/api/auth/token",
         data={"username": "admin", "password": "admin"}
     )
 
@@ -46,7 +46,8 @@ def debug_jwt():
     payload = {"message": "Hello", "user_id": "admin"}
 
     try:
-        response = requests.post("http://localhost:8001/chat", json=payload, headers=headers)
+        chatkit_api_url = os.getenv('CHATKIT_API_URL', 'http://localhost:8001/chat')
+        response = requests.post(chatkit_api_url, json=payload, headers=headers)
         print(f"AI agent response: {response.status_code}")
         if response.status_code != 200:
             print(f"Response: {response.text}")

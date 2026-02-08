@@ -133,6 +133,7 @@ description: "Task list for AI-Powered Todo Application implementation"
 - [ ] T041 Set up Agents SDK framework
 - [ ] T042 Configure MCP (Model Context Protocol) connection
 
+
 ---
 
 ## Phase 8: Phase III Foundational (AI Integration Core)

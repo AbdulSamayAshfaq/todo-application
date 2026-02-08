@@ -1,71 +1,47 @@
----
-title: Todo App Backend
-emoji: 📝
-colorFrom: blue
-colorTo: purple
-sdk: docker
-sdk_version: 3.9
-app_file: backend/app/main.py
-pinned: false
-tags:
-- todo
-- task-management
-- fastapi
-- api
----
+# Todo App Backend - Hugging Face Spaces
 
-# Todo App Backend API
-
-FastAPI-based REST API for the AI-Powered Todo Application.
+A simple FastAPI backend for the Todo application, deployed on Hugging Face Spaces.
 
 ## Features
 
-- **User Authentication**: Register and login with JWT tokens
-- **Task Management**: Create, list, update, and delete tasks
-- **SQLite Database**: Built-in database for data storage
+- ✅ RESTful API with FastAPI
+- ✅ SQLite database (no external setup required)
+- ✅ JWT authentication
+- ✅ Tasks management (CRUD)
+- ✅ Notes management (CROD)
+- ✅ CORS enabled for frontend integration
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Root endpoint |
-| GET | `/health` | Health check |
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login user |
-| GET | `/api/tasks/` | List all tasks |
-| POST | `/api/tasks/` | Create new task |
-| PUT | `/api/tasks/{id}` | Update task |
-| DELETE | `/api/tasks/{id}` | Delete task |
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login and get token
 
-## Default User
+### Tasks
+- `GET /api/tasks` - List all tasks
+- `POST /api/tasks` - Create task
+- `GET /api/tasks/{id}` - Get task by ID
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
 
-- Username: `admin`
-- Password: `admin`
+### Notes
+- `GET /api/notes` - List all notes
+- `POST /api/notes` - Create note
+- `GET /api/notes/{id}` - Get note by ID
+- `PUT /api/notes/{id}` - Update note
+- `DELETE /api/notes/{id}` - Delete note
 
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `JWT_SECRET_KEY` | Secret key for JWT tokens | auto-generated |
-| `DATABASE_URL` | Database connection | sqlite:///./todos.db |
-
-## Usage
+## Development
 
 ```bash
-# Health check
-curl https://abdulsamay-todo-bk.hf.space/health
+# Install dependencies
+pip install -r backend/requirements.txt
 
-# Register
-curl -X POST https://abdulsamay-todo-bk.hf.space/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"user","email":"user@test.com","password":"pass"}'
-
-# Login
-curl -X POST https://abdulsamay-todo-bk.hf.space/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}'
-
-# List tasks (with token)
-curl https://abdulsamay-todo-bk.hf.space/api/tasks/ \
-  -H "Authorization: Bearer YOUR_TOKEN"
+# Run locally
+cd backend
+uvicorn app.main:app --reload
 ```
+
+## Deployment
+
+See [DEPLOY.md](DEPLOY.md) for detailed deployment instructions.
