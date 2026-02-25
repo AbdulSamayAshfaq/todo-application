@@ -4,13 +4,17 @@ const nextConfig = {
   basePath: '',
   trailingSlash: false,
   reactStrictMode: true,
+  // Output standalone for Docker deployment
+  output: 'standalone',
   // Ensure proper handling of API calls
   async rewrites() {
-    // Generic rewrite to proxy all /api/* requests to the backend
+    // Get backend URL from environment variable
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000'
+    
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
+        destination: `${backendUrl}/api/:path*`,
       },
     ]
   },

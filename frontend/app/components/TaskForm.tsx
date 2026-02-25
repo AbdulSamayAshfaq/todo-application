@@ -47,16 +47,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated }) => {
     }
 
     try {
+      // CRITICAL: Do NOT send owner_id - backend sets it from JWT token
       const createdTask = await taskApi.createTask({
         title: title.trim(),
         description: description.trim(),
-        status: 'pending',
         priority,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
         category: category.trim() || null,
-        is_recurring: false,
-        recurrence_pattern: null,
-        owner_id: user.id, // Add the owner_id from the authenticated user
       })
       onTaskCreated(createdTask)
       // Reset form
