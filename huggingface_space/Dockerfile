@@ -1,4 +1,4 @@
-# Hugging Face Spaces - Todo App Backend
+# Hugging Face Spaces - AI-Powered Todo API
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -10,18 +10,22 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Copy application code
+# Copy application code - maintain proper structure
 COPY backend/ /app/backend/
-COPY huggingface_space/app.py /app/app.py
+COPY app.py /app/app.py
 
-# Expose port
+# Set Python path to include /app for imports
+ENV PYTHONPATH=/app
+
+# Expose port (Hugging Face uses PORT env variable)
 EXPOSE 8000
 
-# Run using the app.py script
+# Run the application
 CMD ["python", "app.py"]

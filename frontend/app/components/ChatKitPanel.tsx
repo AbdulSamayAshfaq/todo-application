@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { aiAgentApi, ChatKitResponse } from '@/lib/api';
+import { aiAgentApi, ChatKitResponse, taskApi } from '@/lib/api';
 import EnhancedMessageFormatter from '@/components/ai/EnhancedMessageFormatter';
 import ErrorHandler from '@/components/ai/ErrorHandler';
 import InteractionManager from '@/components/ai/InteractionManager';
 import LoadingState from '@/components/ai/LoadingState';
-import MessageThread from '@/components/ai/MessageThread';
 
 interface ChatKitPanelProps {
   onClose: () => void;
@@ -66,7 +65,15 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
         ]);
       } catch (err) {
         setIsAgentAvailable(false);
-        setError('AI Agent is not available. Please make sure the AI agent server is running on port 8001.');
+        setMessages([
+          {
+            id: 'welcome',
+            content: "Hello! I'm your AI assistant. Note: The AI agent is currently unavailable. You can still create tasks manually using the form below.",
+            sender: 'ai',
+            timestamp: new Date(),
+            type: 'info',
+          },
+        ]);
       }
     };
     checkHealth();
@@ -117,11 +124,11 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
     }
   ];
 
-  // Handle form submission
+  // Handle form submission - Direct API call to backend
   const handleFormSubmit = async () => {
     if (!formData.title.trim()) return;
 
-    setLoadingState('mcp-execution');
+    setLoadingState('network-operation');
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -133,30 +140,24 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      // Create task via API
-      const token = localStorage.getItem('access_token') || '';
-      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_AGENT_URL || process.env.CHATKIT_API_URL || 'http://localhost:8001'}/chatkit/api`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'user_message',
-          message: {
-            content: `Create a task with title: ${formData.title}, description: ${formData.description}, priority: ${formData.priority}, due_date: ${formData.due_date}, category: ${formData.category}`
-          },
-          auth_token: token
-        }),
-      });
+      // Create task directly via backend API
+      const taskData = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || undefined,
+        priority: formData.priority,
+        due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
+        category: formData.category.trim() || null,
+      };
 
-      if (!response.ok) throw new Error('Failed to create task');
-
-      const data = await response.json();
+      console.log('[ChatKitPanel] Creating task:', taskData);
+      const createdTask = await taskApi.createTask(taskData);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.content,
+        content: `✅ Task created successfully!\n📝 Title: ${createdTask.title}\n🏷️ Priority: ${createdTask.priority}\n📌 Status: ${createdTask.status}\n🆔 Task ID: ${createdTask.id}`,
         sender: 'ai',
         timestamp: new Date(),
-        type: data.type === 'error' ? 'error' : 'text',
+        type: 'confirmation',
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (err) {
@@ -184,7 +185,7 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
 
   // Handle sending a message
   const handleSendMessage = useCallback(async (message: string) => {
-    if (!message.trim() || !isAgentAvailable) return;
+    if (!message.trim()) return;
 
     // Check for special commands
     if (message === 'CREATE_TASK') {
@@ -204,16 +205,28 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      const response: ChatKitResponse = await aiAgentApi.sendMessage(message);
+      if (!isAgentAvailable) {
+        // If AI agent is not available, provide a helpful response
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm currently unavailable, but you can use the task form below to manage your tasks. Click 'Create task' to add a new task!",
+          sender: 'ai',
+          timestamp: new Date(),
+          type: 'info',
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        const response: ChatKitResponse = await aiAgentApi.sendMessage(message);
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.content,
-        sender: 'ai',
-        timestamp: new Date(),
-        type: response.type === 'error' ? 'error' : 'text',
-      };
-      setMessages(prev => [...prev, aiMessage]);
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.content,
+          sender: 'ai',
+          timestamp: new Date(),
+          type: response.type === 'error' ? 'error' : 'text',
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }
     } catch (err) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -270,7 +283,7 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
                 <h3 className="text-lg font-semibold mb-4">Create New Task</h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -282,6 +295,7 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter task title"
+                      autoFocus
                     />
                   </div>
 
@@ -293,7 +307,7 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter description (or type 'skip')"
+                      placeholder="Enter description (optional)"
                       rows={2}
                     />
                   </div>
@@ -336,7 +350,7 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter category (or type 'skip')"
+                      placeholder="Enter category (optional)"
                     />
                   </div>
                 </div>
@@ -373,6 +387,8 @@ export function ChatKitPanel({ onClose }: ChatKitPanelProps) {
                       ? 'bg-blue-500 text-white'
                       : msg.type === 'error'
                       ? 'bg-red-100 text-red-800'
+                      : msg.type === 'confirmation'
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
