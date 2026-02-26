@@ -1,30 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from . import auth, tasks, notes, models, utils
-from .database import engine, Base, SessionLocal
+from . import auth, tasks, notes, models
+from .database import engine, Base
 
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
-
-# Create default admin user if not exists
-try:
-    db = SessionLocal()
-    user = db.query(models.User).filter(models.User.username == "admin").first()
-    if not user:
-        hashed_password = utils.get_password_hash("admin")
-        default_user = models.User(
-            username="admin",
-            email="admin@example.com",
-            hashed_password=hashed_password,
-            is_active=True
-        )
-        db.add(default_user)
-        db.commit()
-        print("Default user 'admin' created with password 'admin'")
-    db.close()
-except Exception as e:
-    print(f"Error creating default user: {e}")
 
 # Initialize FastAPI app
 app = FastAPI(
