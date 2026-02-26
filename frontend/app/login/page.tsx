@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Login() {
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('admin')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const { login, loading } = useAuth()
   const router = useRouter()
